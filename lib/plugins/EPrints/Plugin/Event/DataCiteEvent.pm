@@ -14,7 +14,7 @@ use Crypt::SSLeay;
  
 sub datacite_doi
  {
-       my( $self, $eprint) = @_;
+       my( $self, $eprint, $force) = @_;
 
 		my $repository = $self->repository();
 		
@@ -26,20 +26,18 @@ sub datacite_doi
 		
 		my $shoulddoi = $repository->get_conf( "datacitedoi", "eprintstatus",  $eprint->value( "eprint_status" ));
 		
-		#Check Doi Status
-		if(!$shoulddoi){ return; }
+		if (! $force) {
+			#Check Doi Status
+			if(!$shoulddoi){ return; }
 		
-		#check if doi has been set;
-		if( $eprint->exists_and_set( $eprintdoifield )) {
-			if( $eprint->value( $eprintdoifield ) ne $thisdoi ){
-				#Skipping because its has a diff doi;
-				return;
+			#check if doi has been set;
+			if( $eprint->exists_and_set( $eprintdoifield )) {
+				if( $eprint->value( $eprintdoifield ) ne $thisdoi ){
+					#Skipping because its has a diff doi;
+					return;
+				}
 			}
-		}else{
-			$eprint->set_value($eprintdoifield, $thisdoi);
-			$eprint->commit();
 		}
-		
 		
 		my $xml = $eprint->export( "DataCiteXML" );
 		my $url = $repository->get_conf( "datacitedoi", "apiurl");
@@ -48,10 +46,23 @@ sub datacite_doi
 		
 		#register metadata;
 		$response_code =  datacite_request("POST", $url."metadata", $user_name, $user_pw, $xml, "application/xml;charset=UTF-8");
+		if ($response_code !~ /20(1|0)/){
+			$repository->log("[doi=$thisdoi] Metadata registration response from datacite api: response_code=$response_code");
+			$repository->log("[doi=$thisdoi] rescheduling event");
+			return HTTP_LOCKED;
+		}
 		
 		#register doi
 		my $doi_reg = "doi=$thisdoi\nurl=".$eprint->uri();
 		$response_code =  datacite_request("POST", $url."doi", $user_name, $user_pw, $doi_reg, "text/plain;charset=UTF-8");
+		if ($response_code !~ /20(1|0)/){
+			$repository->log("[doi=$thisdoi] Doi registration response from datacite api: response_code=$response_code");
+			$repository->log("[doi=$thisdoi] rescheduling event");
+			return HTTP_LOCKED;
+		}
+
+		$eprint->set_value($eprintdoifield, $thisdoi);
+		$eprint->commit();
 
 		return undef;
 }
@@ -75,7 +86,7 @@ sub datacite_request {
   my $ua = LWP::UserAgent->new;
   my $res = $ua->request($req);
 
-  return $res->content();
+  return $res->code();
 }
 
 

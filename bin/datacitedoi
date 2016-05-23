@@ -1,0 +1,117 @@
+#!/usr/bin/perl -w 
+
+# The script should be installed in $EPRINTS_PATH/archives/<id>/bin
+use FindBin;
+use lib "$FindBin::Bin/../../../perl_lib";
+
+=pod
+
+=head1 NAME
+
+B<datacitedoi> - EPrints datacitedoi access tables
+
+=head1 DESCRIPTION
+
+This script force coin doi from datacite.
+
+=head1 CONFIG FILE 
+
+B<ARCHIVEID/cfg/cfg.d/z_datacitedoi.pl>
+
+=head1 SYNOPSIS
+
+B<datacitedoi> I<repository_id> I<eprintid> [B<options>]
+
+=head1 OPTIONS
+
+=over 8
+
+=item B<--help>
+
+Print a brief help message and exit.
+
+=item B<--man>
+
+Print the full manual page and then exit.
+
+=item B<--verbose>
+
+Explain in detail what is going on. May be repeated for greater effect.
+
+=back   
+
+=cut
+
+use EPrints;
+use Getopt::Long;
+use Pod::Usage;
+
+use strict;
+
+our ($noise);
+my $verbose = 0;
+my $quiet = 0;
+my $help = 0;
+my $man = 0;
+
+# Inizio Main
+Getopt::Long::Configure("permute");
+
+GetOptions( 
+	'help|?' => \$help,
+	'man' => \$man,
+	'version' => \$version,
+	'verbose+' => \$verbose,
+	'quiet' => \$quiet,
+) || pod2usage( 1 );
+pod2usage( 1 ) if $help;
+pod2usage( -exitstatus => 0, -verbose => 2 ) if $man;
+
+$noise = 1;
+$noise = 0 if( $quiet );
+$noise = 1+$verbose if( $verbose );
+
+# Set STDOUT to auto flush (without needing a \n)
+$|=1;
+
+my $repoid = shift @ARGV;
+my $eprintid = shift @ARGV;
+#my $datasetid =shift || 'access';
+my $datasetid='archive';
+pod2usage(1) unless defined $repoid;
+pod2usage(1) unless defined $eprintid;
+
+my $session = new EPrints::Session( 1 , $repoid , $noise );
+if( !defined $session )
+{
+	print STDERR "Failed to load repository: $repoid\n";
+	exit 1;
+}
+
+$noise=$verbose;
+
+my $eprint = EPrints::DataObj::EPrint->new( $session, $eprintid );
+if( !defined $eprint )
+	print STDERR "EPrint #$eprintid not found.";
+	exit 2;
+}
+
+my $handler = $session->plugin( "EPrints::Plugin::Event::DataCiteEvent", datasetid=>$datasetid );
+unless($handler)
+{
+        print STDERR "FATAL ERROR: EPrints::Plugin::Event::DataCiteEvent handler not available\n";
+        $session->terminate();
+        exit;
+}
+
+my $ret=$handler->datacite_doi($eprint, 1);
+my $eprintdoifield = $session->get_conf( "datacitedoi", "eprintdoifield");
+if (! defined $ret || $ret eq EPrints::Const::HTTP_OK) {
+	print "Doi coined for eprint $eprintid [".$eprint->get_value($eprintdoifield)."]\n";
+}
+else {
+	print STDERR "Error $ret while trying to coin doi for eprint $eprintid\n";
+}
+$session->terminate;
+exit;
+
