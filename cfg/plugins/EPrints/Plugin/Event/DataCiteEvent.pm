@@ -48,8 +48,14 @@ sub datacite_doi
 		$response_code =  datacite_request("POST", $url."metadata", $user_name, $user_pw, $xml, "application/xml;charset=UTF-8");
 		if ($response_code !~ /20(1|0)/){
 			$repository->log("[doi=$thisdoi] Metadata registration response from datacite api: response_code=$response_code");
-			$repository->log("[doi=$thisdoi] rescheduling event");
-			return HTTP_LOCKED;
+			if ($response_code == 401) {
+				$repository->log("Check config file z_datacitedoi.pl and set user/pass values");
+				return HTTP_INTERNAL_SERVER_ERROR;
+			}
+			else {
+				$repository->log("[doi=$thisdoi] rescheduling event");
+				return HTTP_LOCKED;
+			}
 		}
 		
 		#register doi

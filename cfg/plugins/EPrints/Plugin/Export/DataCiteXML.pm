@@ -47,6 +47,7 @@ sub output_dataobj
         {
 	
                 my $names = $dataobj->get_value( "creators" );
+		$names= [ $names ] if ref($names) ne 'ARRAY';
                 foreach my $name ( @$names )
                 {
                         my $author = $xml->create_element( "creator" );
@@ -96,7 +97,7 @@ sub output_dataobj
 	  
 	
 		my $thisresourceType = $repo->get_conf( "datacitedoi", "typemap", $dataobj->get_value("type") ); 
-		if($thisresourceType!= undef ){
+		if( defined $thisresourceType ){
 			$entry->appendChild( $xml->create_data_element( "resourceType", $thisresourceType->{'v'},  resourceTypeGeneral=>$thisresourceType->{'a'}) );
 		}
 		
