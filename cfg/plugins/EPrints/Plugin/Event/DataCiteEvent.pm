@@ -25,10 +25,23 @@ sub datacite_doi
 		my $task;
 		
 		my $shoulddoi = $repository->get_conf( "datacitedoi", "eprintstatus",  $eprint->value( "eprint_status" ));
+		my $is_public=1;
+		my @docs=$eprint->get_all_documents;
+		foreach (@docs) {
+			if ( ! $_->is_public) {
+				$is_public=0;
+				last;
+			}
+		}
 		
 		if (! $force) {
 			#Check Doi Status
 			if(!$shoulddoi){ return; }
+
+			# check if register_only_if_is_public is set
+			if ($repository->get_conf( "datacitedoi", "register_only_if_is_public") && ! $is_public) {
+				return;
+			}
 		
 			#check if doi has been set;
 			if( $eprint->exists_and_set( $eprintdoifield )) {

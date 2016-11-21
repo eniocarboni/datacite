@@ -15,6 +15,7 @@ $c->{datacitedoi}{repoid} = $c->{"host"};
 #When should you register/update doi info.
 # set archive=>1 to enable events job
 $c->{datacitedoi}{eprintstatus} = {inbox=>0,buffer=>0,archive=>0,deletion=>0};
+$c->{datacitedoi}{register_only_if_is_public}=1;
 $c->{datacitedoi}{prefix} = "10.5072";
 #$c->{datacitedoi}{apiurl} = "https://test.datacite.org/mds/";
 $c->{datacitedoi}{apiurl} = "https://mds.test.datacite.org/";
@@ -27,7 +28,7 @@ $c->{datacitedoi}{pass} = "PASS";
 #When should you register/update doi info.
 #$c->{datacitedoi}{eprintstatus} = {inbox=>0,buffer=>0,archive=>1,deletion=>0};
 #$c->{datacitedoi}{prefix} = "10.5072";
-#$c->{datacitedoi}{apiurl} = "https://mds.datacite.org/doi";
+#$c->{datacitedoi}{apiurl} = "https://mds.datacite.org/";
 #$c->{datacitedoi}{user} = "USER_PROD";
 #$c->{datacitedoi}{pass} = "PASS_PROD";
 

@@ -14,7 +14,7 @@ use Crypt::SSLeay;
 Installation
 -------------
 
-Install the plugin from the bazaar and edit the following config files.
+Install the plugin and edit the following config files.
 
 ```
 z_datacite_core.pl
@@ -38,6 +38,7 @@ $c->{datacitedoi}{eprintdoifield} = "id_number";
 
 #When should you register/update doi info.
 $c->{datacitedoi}{eprintstatus} = {inbox=>0,buffer=>1,archive=>1,deletion=>0};
+$c->{datacitedoi}{register_only_if_is_public}=1;
 
 #set these (you will get the from data site)
 # doi = {prefix}/{repoid}/{eprintid}

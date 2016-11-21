@@ -39,7 +39,7 @@ sub output_dataobj
 
 		my $entry = $xml->create_element( "resource", xmlns=>"http://datacite.org/schema/kernel-2.2", "xmlns:xsi"=>"http://www.w3.org/2001/XMLSchema-instance", "xsi:schemaLocation"=>"http://datacite.org/schema/kernel-2.2 http://schema.datacite.org/meta/kernel-2.2/metadata.xsd" );
 		
-	    $entry->appendChild( $xml->create_data_element( "identifier", $dataobj->get_value( $repo->get_conf( "datacitedoi", "eprintdoifield") ) , identifierType=>"DOI" ) );
+	    $entry->appendChild( $xml->create_data_element( "identifier", $dataobj->get_value( $repo->get_conf( "datacitedoi", "eprintdoifield") ) || $thisdoi , identifierType=>"DOI" ) );
 		
 
 		my $creators = $xml->create_element( "creators" );
