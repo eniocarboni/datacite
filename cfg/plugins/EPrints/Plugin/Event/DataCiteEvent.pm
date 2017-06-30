@@ -95,6 +95,7 @@ sub datacite_request {
     'Accept'  => 'application/xml',
     'Content-Type' => $content_type
   );
+  utf8::encode($content) if $content =~ /[^\x00-\xFF]/;
   my $req = HTTP::Request->new(
     $method => $url,
     $headers, $content
